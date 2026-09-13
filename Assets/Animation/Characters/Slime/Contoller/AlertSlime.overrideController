@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AlertSlime
+  m_Controller: {fileID: 9100000, guid: 864f60153ebacaf45b094a1947f744f3, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 86183a7a8e69e0c4ba26d91bf3acc599, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: cdb9de18133013143a2abff30f44b456, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: f09fda1a29825f744bc4e0b130f49b2c, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 56d607ebf1efd704c870a866586936a0, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 5d34c8bd27694574abaf56187dd9a1bf, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 265411862e9153245a98732b3d42140d, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 42a3c6e17fe8514458de90dadb2b104a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: e469724e652706c4b95f07cc19d3ba07, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 90edd3dc2a0d9d947b1d152df640d148, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 907af139233bfdf4c8657f87e3de01e1, type: 2}

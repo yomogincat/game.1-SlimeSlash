@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -61,13 +62,12 @@ public class Player : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] float walkSpeed = 8f;
-    [SerializeField] float acceleration = 5f;
-    [SerializeField] float turnAcceleration = 10f;
-    [SerializeField] float airAcceleration = 4f;
 
     [SerializeField] float jumpPower = 20f;
+    [SerializeField] float jumpCutScale = 0.5f;
     [SerializeField] int maxJump = 1;
     int jumpCount;
+
 
     [SerializeField] float wallJumpPower = 20f;
     float wallJumpDirection;
@@ -81,7 +81,6 @@ public class Player : MonoBehaviour
     float direction = 1f;
     float facingDirection = 1f;
 
-    float moveAmount;
     float moveSpeed;
 
     float dashDirection;
@@ -121,11 +120,12 @@ public class Player : MonoBehaviour
     [SerializeField] float invincibleTime = 0.2f;
     [SerializeField] float dashTime = 0.1f;
     [SerializeField] float dashBufferTime = 0.1f;
-    [SerializeField] float dashCooltime = 0.6f;
+    [SerializeField] float dashCoolTime = 0.6f;
     [SerializeField] float jumpBufferTime = 0.1f;
     [SerializeField] float coyoteTime = 0.1f;
     [SerializeField] float wallJumpTime = 0.25f;
     [SerializeField] float jumpCutBufferTime = 0.1f;
+    [SerializeField] float jumpCutEffectTime = 0.2f;
     [SerializeField] float flashTime = 0.06f;
 
     float invincibleTimer;
@@ -166,15 +166,16 @@ public class Player : MonoBehaviour
     public int MaxHealth => maxHealth;
     public float Energy => energy;
     public float MaxEnergy => maxEnergy;
+
+    public float Direction => direction;
     //==================== State ====================
 
     bool isGrounded;
     bool isTouchingWall;
     bool isWallSliding;
     bool isJumping;
-    bool isWallJump;
+    bool isWallJumping;
     bool isDashing;
-    bool isJumpCut;
     bool isKnockback;
 
     //==================== Input ====================
@@ -220,7 +221,6 @@ public class Player : MonoBehaviour
 
         HandleDirection();
 
-        HandleWallSliding();
 
         HandleSpriteDirection();
 
@@ -236,6 +236,8 @@ public class Player : MonoBehaviour
         HandleGroundCheck();
 
         HandleWallCheck();
+
+        HandleWallSliding();
 
         HandleDash();
 
@@ -264,7 +266,8 @@ public class Player : MonoBehaviour
     void HandleInputBuffer()
     {
         if (jumpPressed) jumpBufferTimer = jumpBufferTime;
-        if (jumpReleased) jumpCutBufferTimer = jumpCutBufferTime;
+        if (jumpReleased && rb.linearVelocity.y > 0)
+            jumpCutBufferTimer = jumpCutBufferTime;
         if (dashPressed) dashBufferTimer = dashBufferTime;
     }
 
@@ -331,19 +334,17 @@ public class Player : MonoBehaviour
         if (isWallSliding)
         {
             rb.gravityScale = wallSlideGravity;
+            return;
         }
-        if (isJumpCut)
-        {
-            rb.gravityScale = jumpCutGravity;
-            isJumpCut = rb.linearVelocity.y > 0 & isJumping;
-        }
-        else if (rb.linearVelocity.y < 0)
+        if (rb.linearVelocity.y < 0)
         {
             rb.gravityScale = fallGravity;
+            return;
         }
         else
         {
             rb.gravityScale = normalGravity;
+            return;
         }
     }
     void HandleGroundCheck()
@@ -370,7 +371,6 @@ public class Player : MonoBehaviour
         {
             coyoteTimer = coyoteTime;
             jumpCount = 0;
-            isJumping = false;
         }
     }
 
@@ -412,7 +412,7 @@ public class Player : MonoBehaviour
     }
     void HandleAnimation()
     {
-        SetAnim("Speed", Mathf.Abs(moveAmount));
+        SetAnim("Speed", Mathf.Abs(moveInput));
         SetAnimValue(graphicsAnim, "YVelocity", rb.linearVelocity.y);
         SetAnimValue(graphicsAnim, "IsGrounded", isGrounded);
         SetAnimValue(graphicsAnim, "IsWallSliding", isWallSliding); 
@@ -469,7 +469,7 @@ public class Player : MonoBehaviour
         isWallSliding =
             isTouchingFrontWall
             && !isGrounded
-            && !isWallJump
+            && !isWallJumping
             && moveInput != -wallDirection;
     }
 
@@ -481,47 +481,27 @@ public class Player : MonoBehaviour
     {
         if (isKnockback)
         {
-            moveAmount = 0;
             isKnockback = knockbackTimer > 0;
             return;
         }
-        else if (isWallSliding)
-        {
-            moveAmount = 0;
-        }
-        else if (isWallJump)
-        {
-            moveAmount = Mathf.MoveTowards(moveAmount, moveInput, airAcceleration * Time.fixedDeltaTime);
-        }
-        else if (!isGrounded)
-        {
-            moveAmount = Mathf.MoveTowards(moveAmount, moveInput, airAcceleration * Time.fixedDeltaTime);
-        }
-        else if (Mathf.Sign(moveAmount) != Mathf.Sign(moveInput) && moveInput != 0)
-        {
-            moveAmount = Mathf.MoveTowards(moveAmount, moveInput, turnAcceleration * Time.fixedDeltaTime);
-        }
-        else
-        {
-            moveAmount = Mathf.MoveTowards(moveAmount, moveInput, acceleration * Time.fixedDeltaTime);
-        }
+        
 
-        if (isWallJump)
+        if (isWallJumping)
         {
-            moveSpeed = wallJumpBoost + moveAmount * walkSpeed;
+            moveSpeed = wallJumpBoost + moveInput * walkSpeed;
             rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
-            isWallJump = wallJumpTimer > 0;
+            isWallJumping = wallJumpTimer > 0;
             return;
         }
 
         if (dashTimer > 0)
         {
-            moveSpeed = dashDirection * dashSpeed + moveAmount * dashControl;
+            moveSpeed = dashDirection * dashSpeed + moveInput * dashControl;
             rb.linearVelocity = new Vector2(moveSpeed, 0);
             return;
         }
 
-        moveSpeed = moveAmount * walkSpeed;
+        moveSpeed = moveInput * walkSpeed;
         rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
     }
 
@@ -536,21 +516,28 @@ public class Player : MonoBehaviour
             dashDirection = facingDirection;
             dashBufferTimer = 0;
             canDash = false;
+            isDashing = true;
+        }
+        if (isDashing && dashTimer <= 0)
+        {
+            dashCoolTimer = dashCoolTime;
+            isDashing = false;
         }
     }
     void HandleJump()
     {
         if (jumpBufferTimer > 0)
         {
-            if (CanWallJump() && !isWallJump)
+            if (CanWallJump() && !isWallJumping)
             {
                 wallJumpDirection = wallDirection;
                 wallJumpBoost = wallJumpPower * -wallJumpDirection;
                 wallJumpTimer = wallJumpTime;
-                isWallJump = true;
+                isWallJumping = true;
                 jumpBufferTimer = 0;
                 isJumping = true;
                 Jump();
+                jumpCutBufferTimer = 0;
             }
             else if (CanJump())
             {
@@ -559,11 +546,12 @@ public class Player : MonoBehaviour
                 Jump();
             }
         }
+        if (isJumping)
+            isJumping = !(isWallSliding || isGrounded) || rb.linearVelocity.y > 0;
         if (jumpCutBufferTimer > 0 && rb.linearVelocity.y > 0)
         {
-            rb.gravityScale = jumpCutGravity;
-            rb.linearVelocityY = rb.linearVelocity.y * 0.5f;
-            isJumpCut = true;
+            rb.linearVelocityY = rb.linearVelocity.y * jumpCutScale;
+            Debug.Log($"JumpCut frame:{Time.frameCount}");
             jumpCutBufferTimer = 0;
         }
     }

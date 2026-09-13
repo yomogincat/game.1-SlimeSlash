@@ -286,12 +286,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5409b916974ee5d4296e20b011f9bca3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RabbitEnemy
-  graphicsAnim: {fileID: 0}
-  eyeAnim: {fileID: 0}
-  audioSource: {fileID: 5383873280990428493}
+  graphicsAnim: {fileID: 6485829929895970544}
+  eyeAnim:
+  - {fileID: 0}
   graphics: {fileID: 8558530286417327439}
-  groundRayR: {fileID: 270386868021215956}
-  groundRayL: {fileID: 8867768144332692208}
   wallRayR: {fileID: 6290781528183989883}
   wallRayL: {fileID: 3566988975408191718}
   playerRay: {fileID: 4223053723474823114}
@@ -301,14 +299,24 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 4096
-  hit: {fileID: 8300000, guid: acc7b6460aefb2941985c958fe817c82, type: 3}
+  hitSE: {fileID: 8300000, guid: acc7b6460aefb2941985c958fe817c82, type: 3}
   maxHealth: 2
-  walkSpeed: 4
-  direction: -1
+  damage: 1
+  knockbackPower: {x: 5, y: 5}
+  knockbackTime: 0.1
   invincibleTime: 0.2
-  groundRayLength: 0.2
   wallRayLength: 0.2
   playerRayLength: 2
+  direction: -1
+  groundRayR: {fileID: 270386868021215956}
+  groundRayL: {fileID: 8867768144332692208}
+  walkSpeed: 4
+  normalGravity: 5
+  groundRayLength: 0.2
+  jumpPower: 12
+  jumpInterval: 2
+  jumpChargeTime: 0.2
+  jumpMoveSpeed: 8
 --- !u!50 &4994361031184315026
 Rigidbody2D:
   serializedVersion: 5
@@ -380,7 +388,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.9, y: 0.5}
+  m_Size: {x: 0.7, y: 0.5}
   m_EdgeRadius: 0
 --- !u!82 &5383873280990428493
 AudioSource:
@@ -552,9 +560,9 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4359675830047822538}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 864f60153ebacaf45b094a1947f744f3, type: 2}
+  m_Controller: {fileID: 9100000, guid: 1cacc50cf9f698b48a7d353c733eb27e, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -738,7 +746,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.9, y: 0.5}
+  m_Size: {x: 0.7, y: 0.5}
   m_EdgeRadius: 0
 --- !u!114 &2473249984369985845
 MonoBehaviour:
@@ -752,9 +760,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88bcdb20462387f4bb060d0d69a49d2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlimeAttack
-  damage: 1
-  knockbackPower: {x: 20, y: 10}
-  knockbackTime: 0.1
 --- !u!1 &8910062896354597944
 GameObject:
   m_ObjectHideFlags: 0
