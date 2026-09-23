@@ -933,7 +933,7 @@ MonoBehaviour:
   maxY: 100
   followSpeed: 0.1
   lookAheadDistance: 1
-  lookAheadSpeed: 0.25
+  lookAheadSpeed: 0.01
   deadZoneX: 1.5
   deadZoneY: 1
 --- !u!1001 &618175687
