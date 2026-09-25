@@ -1,6 +1,3 @@
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
-using UnityEditorInternal;
 using UnityEngine;
 
 public class BeeEnemy : FlyingEnemy
