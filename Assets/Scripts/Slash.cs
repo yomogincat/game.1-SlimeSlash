@@ -1,9 +1,4 @@
-using Mono.Cecil;
-using System.Threading;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Slash : MonoBehaviour
 {
@@ -18,7 +13,7 @@ public class Slash : MonoBehaviour
     [SerializeField] int damage = 1;
     [SerializeField] Vector2 knockbackPower = new Vector2(10, 2);
     [SerializeField] float knockbackTime = 0.1f;
-
+    
     float direction;
     public void Initialize(Transform attackPoint, Transform player, float direction)
     {

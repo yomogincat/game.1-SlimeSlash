@@ -1853,7 +1853,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 1804475892}
   targetDoor: {fileID: 1464969172}
-  room: {fileID: 1729460574}
+  room: {fileID: 658870974}
   spawnDirection: 1
 --- !u!1 &942413853
 GameObject:
