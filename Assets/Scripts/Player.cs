@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class Player : MonoBehaviour
 
     [SerializeField] HPUI hpUI;
     public Slash slashPrefab;
+
+    [SerializeField] AbilityManager abilityManager;
 
     //==================== Transforms ====================
 
@@ -75,8 +78,6 @@ public class Player : MonoBehaviour
 
     float wallJumpBoost;
 
-    [SerializeField] float dashSpeed = 30f;
-    [SerializeField] float dashControl = 6f;
 
     float direction = 1f;
     float facingDirection = 1f;
@@ -102,10 +103,14 @@ public class Player : MonoBehaviour
     [SerializeField] float slashCooldownMax;
     float slashCooldown;
 
+    //==================== Abilities ===================
+    [Header("Abilities")]
+
+    DashParameters currentDash;
+
     //==================== Costs ====================
 
     [Header("Costs")]
-    [SerializeField] float dashCost = 10f;
 
     //==================== Colors ====================
 
@@ -118,7 +123,6 @@ public class Player : MonoBehaviour
 
     [Header("Timers")]
     [SerializeField] float invincibleTime = 0.2f;
-    [SerializeField] float dashTime = 0.1f;
     [SerializeField] float dashBufferTime = 0.1f;
     [SerializeField] float dashCoolTime = 0.6f;
     [SerializeField] float jumpBufferTime = 0.1f;
@@ -182,12 +186,12 @@ public class Player : MonoBehaviour
 
     float moveInput;
     float verticalInput;
-
-    bool dashPressed;
     bool shootInput;
     bool jumpPressed;
     bool jumpReleased;
     bool attackInput;
+
+    int abilitySlotInput;
 
     //==================== Utility ====================
 
@@ -217,7 +221,9 @@ public class Player : MonoBehaviour
 
         HandleTimers();
 
-        HandleSkill();
+        HandleAttack();
+
+        HandleAbilities();
 
         HandleDirection();
 
@@ -254,12 +260,17 @@ public class Player : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
-        dashPressed = Input.GetButtonDown("Dash");
 
         jumpPressed = Input.GetButtonDown("Jump");
         jumpReleased = Input.GetButtonUp("Jump");
 
         attackInput = Input.GetButtonDown("Attack1");
+
+        abilitySlotInput =
+            Input.GetKeyDown(KeyCode.Q) ? 0 :
+            Input.GetKeyDown(KeyCode.W) ? 1 :
+            Input.GetKeyDown(KeyCode.E) ? 2 :
+            -1;
 
     }
 
@@ -268,7 +279,6 @@ public class Player : MonoBehaviour
         if (jumpPressed) jumpBufferTimer = jumpBufferTime;
         if (jumpReleased && rb.linearVelocity.y > 0)
             jumpCutBufferTimer = jumpCutBufferTime;
-        if (dashPressed) dashBufferTimer = dashBufferTime;
     }
 
 
@@ -447,7 +457,7 @@ public class Player : MonoBehaviour
         bodyRenderer.color = bodyColor;
     }
         
-       
+
     void HandleSpriteDirection()
     {
         facingDirection = direction;
@@ -496,7 +506,7 @@ public class Player : MonoBehaviour
 
         if (dashTimer > 0)
         {
-            moveSpeed = dashDirection * dashSpeed + moveInput * dashControl;
+            moveSpeed = dashDirection * currentDash.Speed + moveInput * currentDash.Control;
             rb.linearVelocity = new Vector2(moveSpeed, 0);
             return;
         }
@@ -505,23 +515,28 @@ public class Player : MonoBehaviour
         rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
     }
 
-    void HandleDash()
+    public void HandleDash()
     {
-        if (isGrounded || isTouchingWall) canDash = true;
-        if (dashBufferTimer > 0 && energy >= dashCost && dashCoolTimer <= 0&& canDash)
-        {
-            dashTimer = dashTime;
-            resetVY = true;
-            energy -= dashCost;
-            dashDirection = facingDirection;
-            dashBufferTimer = 0;
-            canDash = false;
-            isDashing = true;
-        }
+        if (isGrounded || isTouchingWall && dashCoolTimer <= 0) canDash = true;
+
         if (isDashing && dashTimer <= 0)
         {
             dashCoolTimer = dashCoolTime;
             isDashing = false;
+        }
+    }
+    public void Dash(DashParameters config)
+    {
+        currentDash = config;
+        if (canDash && energy >= currentDash.Cost)
+        {
+            energy -= currentDash.Cost;
+            dashTimer = currentDash.Time;
+            dashDirection = facingDirection;
+            dashBufferTimer = 0;
+            resetVY = true;
+            canDash = false;
+            isDashing = true;
         }
     }
     void HandleJump()
@@ -556,7 +571,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    void HandleSkill()
+    void HandleAttack()
     {
         if (attackInput && slashCooldown <= 0 && !isKnockback)
         {
@@ -565,6 +580,12 @@ public class Player : MonoBehaviour
             slashCooldown = slashCooldownMax;
             audioSource.PlayOneShot(slashWhoosh);
         }
+    }
+
+    void HandleAbilities()
+    {
+        if (abilitySlotInput == -1) return;
+        abilityManager.UseAbility(abilitySlotInput);
     }
 
     //=========

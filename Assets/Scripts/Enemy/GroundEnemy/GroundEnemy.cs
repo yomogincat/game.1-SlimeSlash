@@ -1,103 +1,110 @@
-using UnityEditorInternal;
 using UnityEngine;
 
 public class GroundEnemy : Enemy
 {
-    //==================== Transforms ====================
+	[Header("Transforms")]
+	[SerializeField]
+	protected Transform groundRayR;
 
-    [Header("Transforms")]
+	[SerializeField]
+	protected Transform groundRayL;
 
-    [SerializeField] protected Transform groundRayR;
-    [SerializeField] protected Transform groundRayL;
+	[Header("Movement")]
+	[SerializeField]
+	protected float walkSpeed = 2f;
 
-    //==================== Movement ====================
+	protected float moveSpeed;
 
-    [Header("Movement")]
-    [SerializeField] protected float walkSpeed = 2f;
+	[Header("Gravity")]
+	[SerializeField]
+	protected float normalGravity = 5f;
 
-    protected float moveSpeed;
+	[Header("Checks")]
+	[SerializeField]
+	protected float groundRayLength = 0.2f;
 
-    //==================== Gravity ====================
-    [Header("Gravity")]
-    [SerializeField] protected float normalGravity = 5f;
+	protected RaycastHit2D groundHitR;
 
-    //==================== Checks ====================
+	protected RaycastHit2D groundHitL;
 
-    [Header("Checks")]
-    [SerializeField] protected float groundRayLength = 0.2f;
+	protected bool isGroundAhead;
 
-    protected RaycastHit2D groundHitR;
-    protected RaycastHit2D groundHitL;
+	protected bool isGroundedR;
 
-    protected bool isGroundAhead;
+	protected bool isGroundedL;
 
-    protected bool isGroundedR;
-    protected bool isGroundedL;
+	protected override void Update()
+	{
+		HandleGroundCheck();
+		base.Update();
+	}
 
-    protected override void Update()
-    {
-        HandleGroundCheck();
-        base.Update();
-    }
+	protected override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		HandleGravity();
+	}
 
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-        HandleGravity();
-    }
-   
-    protected void HandleGroundCheck()
-    {
-        wasGrounded = isGrounded;
-        groundHitR = Physics2D.Raycast(
-            groundRayR.position,
-            Vector2.down,
-            groundRayLength,
-            groundLayer
-            );
+	protected void HandleGroundCheck()
+	{
+		wasGrounded = isGrounded;
+		groundHitR = Physics2D.Raycast(groundRayR.position, Vector2.down, groundRayLength, groundLayer);
+		groundHitL = Physics2D.Raycast(groundRayL.position, Vector2.down, groundRayLength, groundLayer);
+		isGroundedR = groundHitR;
+		isGroundedL = groundHitL;
+		isGrounded = isGroundedR || isGroundedL;
+		isGroundAhead = ((direction > 0f) ? isGroundedR : isGroundedL);
+		if (isGrounded && !wasGrounded)
+		{
+			OnLanded();
+		}
+	}
 
-        groundHitL = Physics2D.Raycast(
-            groundRayL.position,
-            Vector2.down,
-            groundRayLength,
-            groundLayer
-            );
+	protected virtual void HandleGravity()
+	{
+		rb.gravityScale = GetGravityScale();
+	}
 
-        isGroundedR = groundHitR;
-        isGroundedL = groundHitL;
-        isGrounded = isGroundedR || isGroundedL;
+	protected virtual float GetGravityScale()
+	{
+		return normalGravity;
+	}
 
-        isGroundAhead = direction > 0 ? isGroundedR : isGroundedL;
+	protected override void Move()
+	{
+		moveSpeed = GetMoveSpeed() * direction;
+		rb.linearVelocityX = moveSpeed;
+	}
 
-        if (isGrounded && !wasGrounded)
-        {
-            OnLanded();
-        }
-    }
+	protected virtual float GetMoveSpeed()
+	{
+		return walkSpeed;
+	}
 
-    protected virtual void HandleGravity()
-    {
-        rb.gravityScale = GetGravityScale();
-    }
+	protected override bool ShouldTurnByObstacle()
+	{
+		if (!isTouchingFrontWall)
+		{
+			if (!isGroundAhead)
+			{
+				return isGrounded;
+			}
+			return false;
+		}
+		return true;
+	}
 
-    protected virtual float GetGravityScale()
-    {
-        return normalGravity;
-    }
-    protected override void Move()
-    {
-
-        moveSpeed = GetMoveSpeed() * direction;
-
-        rb.linearVelocityX = moveSpeed;
-    }
-    protected virtual float GetMoveSpeed()
-    {
-        return walkSpeed;
-    }
-
-    protected override bool ShouldTurnByObstacle()
-    {
-        return isTouchingFrontWall || (!isGroundAhead && isGrounded);
-    }
+	protected override bool ShouldTurnByRoom()
+	{
+		if (room == null)
+		{
+			return false;
+		}
+		Bounds bounds = room.Bounds;
+		if (direction > 0f)
+		{
+			return base.transform.position.x >= bounds.max.x;
+		}
+		return base.transform.position.x <= bounds.min.x;
+	}
 }

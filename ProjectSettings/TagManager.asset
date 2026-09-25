@@ -57,5 +57,8 @@ TagManager:
   - name: Attack
     uniqueID: 2593610463
     locked: 0
+  - name: Secret
+    uniqueID: 728077339
+    locked: 0
   m_RenderingLayers:
   - Default

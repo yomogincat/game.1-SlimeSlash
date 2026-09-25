@@ -1,97 +1,132 @@
 using UnityEngine;
-using UnityEditor.Experimental.GraphView;
-using Unity.VisualScripting;
-
-
-
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 public class SpawnPoint : MonoBehaviour
 {
+	[SerializeField]
+	private Enemy enemyPrefab;
 
-    [SerializeField] Enemy enemyPrefab;
-    Player player;
+	private Player player;
 
-    [SerializeField] float direction = -1;
-    [SerializeField] float respawnTime;
+	private RoomManager roomManager;
 
-    [SerializeField] Vector2 spawnRange;
+	private Enemy enemy;
 
-    Enemy enemy;
-    float respawnTimer;
-    bool respawnStarted;
+	[SerializeField]
+	private float direction = -1f;
 
+	[SerializeField]
+	private Room room;
 
-    void Awake()
-    {
-        player = FindFirstObjectByType<Player>();
-    }
+	[SerializeField]
+	private Vector2 spawnRange;
 
-    void Start()
-    {
-        if (IsPlayerInRange())
-            Spawn();
-    }
-            
+	[SerializeField]
+	private bool respawn = true;
 
-    void Update()
-    {
-        bool isPlayerInRange = IsPlayerInRange();
-        if (!isPlayerInRange)
-            respawnTimer = Mathf.Max(respawnTimer - Time.deltaTime, 0);
-        if (enemy == null && !respawnStarted)
-        {
-            respawnTimer = respawnTime;
-            respawnStarted = true;
-        }
-        if (enemy == null && respawnTimer <= 0 && isPlayerInRange)
-        {
-            Spawn();
-            respawnStarted = false;
-        }
-        
-    }
-    public void Spawn()
-    {
-        enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-        enemy.Initialize(direction);
-        enemy.OnDie += OnEnemyDie;
-    }
+	private bool isPlayerInRange;
 
-    void OnEnemyDie()
-    {
-        enemy.OnDie -= OnEnemyDie;
-        enemy = null;
-    }
+	private bool isPlayerInRoom;
 
-    bool IsPlayerInRange()
-    {
-        return Mathf.Abs(transform.position.x - player.transform.position.x) <= spawnRange.x
-            && Mathf.Abs(transform.position.y - player.transform.position.y) <= spawnRange.y;
-    }
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        float size = 0.3f;
-        Gizmos.DrawCube(
-            transform.position,
-            new Vector3(size, size, 1f)
-            );
+	private bool hasDefeated;
 
-    }
+	private bool hasExitedRoom;
 
-    private void OnDrawGizmosSelected()
-    {
-#if UNITY_EDITOR
-        Handles.Label(
-            transform.position + Vector3.up,
-            $"Enemy : {enemyPrefab.name}\n" +
-            $"Respawn : {respawnTimer:F1}s"
-        );
-#endif
-    }
+	private bool hasSpawned;
 
+	private void Awake()
+	{
+		if (room == null)
+		{
+			room = GetComponentInParent<Room>();
+		}
+		player = Object.FindFirstObjectByType<Player>();
+		roomManager = Object.FindFirstObjectByType<RoomManager>();
+	}
+
+	private void Start()
+	{
+		if (IsPlayerInRange() && IsPlayerInRoom())
+		{
+			Spawn();
+		}
+	}
+
+	private void Update()
+	{
+		if (!hasDefeated || respawn)
+		{
+			isPlayerInRoom = IsPlayerInRoom();
+			isPlayerInRange = IsPlayerInRange();
+			if (!isPlayerInRoom && !hasExitedRoom)
+			{
+				hasExitedRoom = true;
+			}
+			if (!IsPlayerInRoom() && enemy != null)
+			{
+				Object.Destroy(enemy.gameObject);
+				enemy = null;
+			}
+			if (ShouldSpawn())
+			{
+				Spawn();
+				hasExitedRoom = false;
+			}
+		}
+	}
+
+	private bool ShouldSpawn()
+	{
+		if (enemy == null && isPlayerInRange && isPlayerInRoom && (hasExitedRoom || !hasSpawned))
+		{
+			if (hasDefeated)
+			{
+				return respawn;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public void Spawn()
+	{
+		enemy = Object.Instantiate(enemyPrefab, base.transform.position, Quaternion.identity);
+		enemy.Initialize(direction, room);
+		enemy.OnDie += OnEnemyDie;
+		if (!hasSpawned)
+		{
+			hasSpawned = true;
+		}
+	}
+
+	private void OnEnemyDie()
+	{
+		enemy.OnDie -= OnEnemyDie;
+		enemy = null;
+		hasDefeated = true;
+	}
+
+	private bool IsPlayerInRange()
+	{
+		if (Mathf.Abs(base.transform.position.x - player.transform.position.x) <= spawnRange.x)
+		{
+			return Mathf.Abs(base.transform.position.y - player.transform.position.y) <= spawnRange.y;
+		}
+		return false;
+	}
+
+	private bool IsPlayerInRoom()
+	{
+		return roomManager.CurrentRoom == room;
+	}
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.color = Color.green;
+		float num = 0.3f;
+		Gizmos.DrawCube(base.transform.position, new Vector3(num, num, 1f));
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+	}
 }

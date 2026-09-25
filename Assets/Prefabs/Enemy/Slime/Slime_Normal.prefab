@@ -288,7 +288,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SlimeEnemy
   graphicsAnim: {fileID: 6485829929895970544}
   eyeAnim:
-  - {fileID: 0}
+  - {fileID: 2972793744337884442}
   graphics: {fileID: 8558530286417327439}
   wallRayR: {fileID: 6290781528183989883}
   wallRayL: {fileID: 3566988975408191718}

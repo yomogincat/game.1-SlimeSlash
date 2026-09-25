@@ -2,54 +2,66 @@ using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
-    Player player;
+	private Player player;
 
+	private RoomManager roomManager;
 
-    [SerializeField] float minX;
-    [SerializeField] float maxX;
-    [SerializeField] float minY;
-    [SerializeField] float maxY;
+	private Camera camera;
 
-    [SerializeField] float followSpeed;
+	[SerializeField]
+	private float minX;
 
-    [SerializeField] float lookAheadDistance = 1f;
-    [SerializeField] float lookAheadSpeed;
-    float currentLookAhead;
+	[SerializeField]
+	private float maxX;
 
-    [SerializeField] float deadZoneX;
-    [SerializeField] float deadZoneY;
-    void Start()
-    {
-        player = FindFirstObjectByType<Player>();
-    }
-    void LateUpdate()
-    {
-        float targetLookAhead = player.Direction * lookAheadDistance;
+	[SerializeField]
+	private float minY;
 
-        currentLookAhead = Mathf.Lerp(
-            currentLookAhead,
-            targetLookAhead,
-            lookAheadSpeed
-            );
+	[SerializeField]
+	private float maxY;
 
-        Vector3 targetPosition = player.transform.position;
-        targetPosition.x += currentLookAhead;
-        Vector3 pos = Vector3.Lerp(
-            transform.position,
-            targetPosition,
-            followSpeed
-            );
+	[SerializeField]
+	private float followSpeed;
 
-        pos.x = Mathf.Clamp(pos.x - targetPosition.x, -deadZoneX, deadZoneX) + targetPosition.x;
-        pos.y = Mathf.Clamp(pos.y - targetPosition.y, -deadZoneY, deadZoneY) + targetPosition.y;
+	[SerializeField]
+	private float lookAheadDistance = 1f;
 
+	[SerializeField]
+	private float lookAheadSpeed;
 
-        pos.x = Mathf.Clamp(pos.x, minX, maxX);
-        pos.y = Mathf.Clamp(pos.y, minY, maxY);
-        pos.z = transform.position.z;
-        transform.position = pos;
+	private float currentLookAhead;
 
-    }
+	[SerializeField]
+	private float deadZoneX;
 
-    
+	[SerializeField]
+	private float deadZoneY;
+
+	private void Start()
+	{
+		player = Object.FindFirstObjectByType<Player>();
+		roomManager = Object.FindFirstObjectByType<RoomManager>();
+		camera = GetComponent<Camera>();
+	}
+
+	private void LateUpdate()
+	{
+		float orthographicSize = camera.orthographicSize;
+		float num = orthographicSize * camera.aspect;
+		Bounds bounds = roomManager.CurrentRoom.CameraBounds.bounds;
+		float b = player.Direction * lookAheadDistance;
+		currentLookAhead = Mathf.Lerp(currentLookAhead, b, lookAheadSpeed);
+		Vector3 position = player.transform.position;
+		position.x += currentLookAhead;
+		Vector3 position2 = Vector3.Lerp(base.transform.position, position, followSpeed);
+		position2.x = Mathf.Clamp(position2.x - position.x, 0f - deadZoneX, deadZoneX) + position.x;
+		position2.y = Mathf.Clamp(position2.y - position.y, 0f - deadZoneY, deadZoneY) + position.y;
+		if (roomManager.CurrentRoom != null)
+		{
+			position2.x = Mathf.Clamp(position2.x, bounds.min.x + num, bounds.max.x - num);
+			position2.y = Mathf.Clamp(position2.y, bounds.min.y + orthographicSize, bounds.max.y - orthographicSize);
+			position2.z = base.transform.position.z;
+		}
+		base.transform.position = position2;
+	}
 }

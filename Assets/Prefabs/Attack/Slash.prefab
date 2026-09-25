@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Slash
   lifeTime: 0.1
-  damage: 10
+  damage: 1
   knockbackPower: {x: 15, y: 5}
   knockbackTime: 0.1
 --- !u!61 &6194255874315070797

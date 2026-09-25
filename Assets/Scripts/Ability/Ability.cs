@@ -3,12 +3,21 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Ability", menuName = "Scriptable Objects/Ability")]
 public abstract class Ability : ScriptableObject
 {
-    [SerializeField] string abilityName;
-    [SerializeField] Sprite icon;
-    [TextArea]
-    [SerializeField] string description;
+	[SerializeField]
+	private string abilityName;
 
-    public string AbilityName => abilityName;
-    public Sprite Icon => icon;
-    public string Description => description;
+	[SerializeField]
+	private Sprite icon;
+
+	[TextArea]
+	[SerializeField]
+	private string description;
+
+	public string AbilityName => abilityName;
+
+	public Sprite Icon => icon;
+
+	public string Description => description;
+
+	public abstract void HandleAbility(Player player);
 }
